@@ -29,6 +29,7 @@ const purchaseroutes = require('./routes/purchase');
 const premiumfeaturesroutes =require('./routes/premiumFeature');
 const forgotpasswordroute = require('./routes/forgotpassword');
 const ForgotPasswordRequests = require('./models/ForgotPassword');
+app.use(express.static(path.join(__dirname, 'public')));
 const accessLogStream = fs.createWriteStream(
   path.join(__dirname,'access.log'),
   {flag:'a'}
@@ -42,6 +43,10 @@ app.use('/expenses',expensesroutes);
 app.use('/purchase',purchaseroutes);
 app.use('/premium',premiumfeaturesroutes);
 app.use('/password',forgotpasswordroute);
+app.use((req,res)=>{
+  console.log(req.url);
+  res.sendFile(path.join(__dirname,`public/${req.url}`))
+})
 
 
 Users.hasMany(expenses);
