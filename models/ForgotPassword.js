@@ -13,7 +13,7 @@ const ForgotPasswordRequests = sequelize.define('ForgotPasswordRequests',{
         type:Sequelize.INTEGER,
         allowNull: false,
         references: {
-            model: 'Users', // Reference to the Users table
+            model: 'users', // Reference to the Users table
             key: 'id',
           },
     },
