@@ -41,7 +41,7 @@ app.use(
     contentSecurityPolicy: {
       directives: {
         defaultSrc: ["'self'"],
-        formAction: ["'self'", "http://54.221.110.84:3000", "https://54.221.110.84:3000"], // Allow both HTTP and HTTPS
+        formAction: ["'self'", "http://54.221.110.84:3000"], // Allow both HTTP and HTTPS
       },
     },
   })
