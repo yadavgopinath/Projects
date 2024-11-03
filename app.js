@@ -34,17 +34,7 @@ const accessLogStream = fs.createWriteStream(
   path.join(__dirname,'access.log'),
   {flag:'a'}
 );
-app.use(
-  helmet({
-    contentSecurityPolicy: {
-      directives: {
-        defaultSrc: ["'self'"],
-        formAction: ["'self'", "http://54.221.110.84:3000"], 
-      },
-      
-    },
-  })
-);
+app.use(helmet());
 app.use(compression());
 app.use(morgan('combined',{stream:accessLogStream}));
 
