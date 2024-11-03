@@ -158,7 +158,8 @@ exports.checkresetpassword =async (req,res,next)=>{
 <body>
     <div class="container">
         <h2>Reset Password</h2>
-        <form action="/password/resetpassword/${uid}" method="POST">
+       <form action="http://54.221.110.84:3000/password/resetpassword/${uid}" method="POST">
+
             <input type="password" name="newPassword" placeholder="New Password" required />
             <button type="submit">Reset Password</button>
         </form>
