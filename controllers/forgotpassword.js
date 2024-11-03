@@ -70,11 +70,11 @@ exports.forgotpassword = async(req, res, next) => {
                     <p>Hi,</p>
                     <p>We received a request to reset your password. If you didn't make this request, please ignore this email.</p>
                     <p>Otherwise, click the button below to reset your password:</p>
-                    <a href="http://localhost:3000/password/resetpassword/${requestId}" style="padding: 10px 20px; background-color: #4CAF50; color: white; text-decoration: none; border-radius: 5px;">
+                    <a href="http://54.221.110.84:3000/password/resetpassword/${requestId}" style="padding: 10px 20px; background-color: #4CAF50; color: white; text-decoration: none; border-radius: 5px;">
                         Reset Password
                     </a>
                     <p>If you can't click the button, copy and paste the following URL into your browser:</p>
-                    <p>http://localhost:3000/password/resetpassword/${requestId}</p>
+                    <p>http://54.221.110.84:3000/password/resetpassword/${requestId}</p>
                 </body>
         </html>
     `,
