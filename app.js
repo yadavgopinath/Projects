@@ -46,7 +46,17 @@ app.use(
     },
   })
 );
+// Add the Cross-Origin-Opener-Policy (COOP) header middleware
+app.use((req, res, next) => {
+  res.setHeader("Cross-Origin-Opener-Policy", "unsafe-none");
+  next();
+});
 
+// Optional: Add Content-Security-Policy header for form action as fallback
+app.use((req, res, next) => {
+  res.setHeader("Content-Security-Policy", "form-action 'self' http://54.221.110.84:3000");
+  next();
+});
 
 
 app.use(compression());
