@@ -2,29 +2,26 @@ const Sib = require('sib-api-v3-sdk');
 const bcrypt = require('bcrypt');
 const Users = require('../models/users');
 const forgotpassword = require('../models/ForgotPassword');
-const { v4: uuidv4 } = require('uuid'); // Make sure to import uuidv4
-const sequalize = require('../util/database');
+const { v4: uuidv4 } = require('uuid'); 
 
 
 
 
 exports.forgotpassword = async(req, res, next) => {
     const { email } = req.body;
-
-    // Check if email exists in the request body
     if (!email) {
         return res.status(404).json({ message: "email not provided" });
     }
     try{
 
-    const user=await Users.findOne({where:{email:email}});
+    const user=await Users.findOne({email});
 
     if(!user)
     {
         return res.status(404).json({ message: "User Not Exist Kindly Sign-up For New User" });
     }
 
-    const userId = user.id; 
+    const userId = user._id; 
     const requestId = uuidv4(); 
     
     await forgotpassword.create({
@@ -53,7 +50,7 @@ exports.forgotpassword = async(req, res, next) => {
     // Receiver email (you can use the one from req.body or any other)
     const receivers = [
         {
-            email: email,  // Dummy receiver for now
+            email  // Dummy receiver for now
         }
     ];
 
@@ -70,11 +67,11 @@ exports.forgotpassword = async(req, res, next) => {
                     <p>Hi,</p>
                     <p>We received a request to reset your password. If you didn't make this request, please ignore this email.</p>
                     <p>Otherwise, click the button below to reset your password:</p>
-                    <a href="http://54.221.110.84:3000/password/resetpassword/${requestId}" style="padding: 10px 20px; background-color: #4CAF50; color: white; text-decoration: none; border-radius: 5px;">
+                    <a href="http://localhost:3200/password/resetpassword/${requestId}" style="padding: 10px 20px; background-color: #4CAF50; color: white; text-decoration: none; border-radius: 5px;">
                         Reset Password
                     </a>
                     <p>If you can't click the button, copy and paste the following URL into your browser:</p>
-                    <p>http://54.221.110.84:3000/password/resetpassword/${requestId}</p>
+                    <p>http://localhost:3200/password/resetpassword/${requestId}</p>
                 </body>
         </html>
     `,
@@ -90,12 +87,8 @@ exports.forgotpassword = async(req, res, next) => {
 
 exports.checkresetpassword =async (req,res,next)=>{
    const uid=req.params.uuid;
-   
-    const uuid= await forgotpassword.findByPk(uid,{
-        attributes:[
-            'id','isActive'
-        ]
-    });
+ try{  
+    const uuid= await forgotpassword.findOne({id:uid,isActive: true });
     
     // Check if the UUID exists and is active
     if (!uuid || !uuid.isActive) {
@@ -158,7 +151,7 @@ exports.checkresetpassword =async (req,res,next)=>{
 <body>
     <div class="container">
         <h2>Reset Password</h2>
-       <form action="http://54.221.110.84:3000/password/resetpassword/${uid}" method="POST">
+       <form action="http://localhost:3200/password/resetpassword/${uid}" method="POST">
 
             <input type="password" name="newPassword" placeholder="New Password" required />
             <button type="submit">Reset Password</button>
@@ -168,10 +161,15 @@ exports.checkresetpassword =async (req,res,next)=>{
 </html>
 
     `);
+
+
+     } catch (error) {
+        console.error(error);
+        return res.status(500).json({ message: "Error occurred", error: error.message });
+    }
 }
 
 exports.finalresetpassword= async (req,res,next)=>{
-    const t = await sequalize.transaction();
     const { uuid } = req.params; 
     const { newPassword } = req.body; 
 
@@ -185,7 +183,7 @@ exports.finalresetpassword= async (req,res,next)=>{
 
     try {
        
-        const resetRequest = await forgotpassword.findOne({ where: { id: uuid, isActive: true } },{transaction: t });
+        const resetRequest = await forgotpassword.findOne({ id: uuid, isActive: true });
 
         if (!resetRequest) {
             return res.status(400).json({ message: "Invalid or expired reset link" });
@@ -197,20 +195,13 @@ exports.finalresetpassword= async (req,res,next)=>{
          const hashedPassword = await bcrypt.hash(newPassword, saltRounds);  // Hash the password
  
          // Update the user's password in the Users table
-         await Users.update(
-             { password: hashedPassword },
-             { where: { id: resetRequest.userId } },{transaction: t}
-         );
+         await Users.updateOne({ _id: resetRequest.userId }, { password: hashedPassword });
        
-        await forgotpassword.update(
-            { isActive: false },
-            { where: { id: uuid } },{transaction:t}
-        );
+        await forgotpassword.updateOne({ id: uuid }, { isActive: false });
 
-        await t.commit();
+        
         res.status(200).json({ message: "Password reset successfully" });
     } catch (error) {
-        await t.rollback();
         console.error(error);
         res.status(500).json({ message: "Error occurred while resetting password", error: error.message });
     }

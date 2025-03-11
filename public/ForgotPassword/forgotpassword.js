@@ -17,7 +17,7 @@ document.getElementById('forgot-password-form').addEventListener('submit', async
       email: email
     };
 
-    await axios.post('http://54.221.110.84:3000/password/forgotpassword', data)
+    await axios.post('http://localhost:3200/password/forgotpassword', data)
       .then(function(response) {
         alert("Reset-Password Link has been send on given email-id");
         document.getElementById('email').value = '';

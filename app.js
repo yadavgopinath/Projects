@@ -5,7 +5,7 @@ const fs= require('fs');
 const cors = require ('cors');
 const bodyParser = require('body-parser');
 const app=express();
-const sequelize = require('./util/database');
+const mongoose=require('mongoose');
 
 const helmet = require('helmet');
 const compression = require('compression');
@@ -24,7 +24,7 @@ const Users = require('./models/users');
 const expenses = require('./models/expenses');
 const order = require('./models/order');
 const download=require('./models/download');
-const { FORCE } = require('sequelize/lib/index-hints');
+
 const purchaseroutes = require('./routes/purchase');
 const premiumfeaturesroutes =require('./routes/premiumFeature');
 const forgotpasswordroute = require('./routes/forgotpassword');
@@ -41,7 +41,7 @@ app.use(
     contentSecurityPolicy: {
       directives: {
         defaultSrc: ["'self'"],
-        formAction: ["'self'", "http://54.221.110.84:3000"], // Allow both HTTP and HTTPS
+        formAction: ["'self'", "http://localhost:3200"], // Allow both HTTP and HTTPS
       },
     },
   })
@@ -54,7 +54,7 @@ app.use((req, res, next) => {
 
 // Optional: Add Content-Security-Policy header for form action as fallback
 app.use((req, res, next) => {
-  res.setHeader("Content-Security-Policy", "form-action 'self' http://54.221.110.84:3000");
+  res.setHeader("Content-Security-Policy", "form-action 'self' http://localhost:3200");
   next();
 });
 
@@ -73,23 +73,39 @@ app.use((req,res)=>{
 })
 
 
-Users.hasMany(expenses);
-expenses.belongsTo(Users);
-Users.hasMany(order);
-order.belongsTo(Users);
-Users.hasMany(ForgotPasswordRequests, { onDelete: 'CASCADE' }); 
-ForgotPasswordRequests.belongsTo(Users); 
-Users.hasMany(download);
-download.belongsTo(Users);
+// Users.hasMany(expenses);
+// expenses.belongsTo(Users);
+// Users.hasMany(order);
+// order.belongsTo(Users);
+// Users.hasMany(ForgotPasswordRequests, { onDelete: 'CASCADE' }); 
+// ForgotPasswordRequests.belongsTo(Users); 
+// Users.hasMany(download);
+// download.belongsTo(Users);
 
-sequelize.sync()
-  .then((result) => {
+// sequelize.sync()
+//   .then((result) => {
   
+//     app.listen(process.env.PORT || 3000, () => {
+//       console.log('Server running on port 3000'+process.env.PORT);
+//     });
+//   })
+//   .catch(err => {
+//     console.error('Error syncing database:', err);
+//   });
+
+
+
+mongoose
+  .connect(process.env.MONGODB_URI || 'mongodb+srv://yadavgopinath93:ehWoAfQsFheHp53E@cluster0.bx266.mongodb.net/ExpenseTracker?retryWrites=true&w=majority&appName=Cluster0', {
+    useNewUrlParser: true,
+    useUnifiedTopology: true
+  })
+  .then(() => {
+    console.log('MongoDB Connected');
     app.listen(process.env.PORT || 3000, () => {
-      console.log('Server running on port 3000'+process.env.PORT);
+      console.log('Server running on port ' + (process.env.PORT || 3000));
     });
   })
   .catch(err => {
-    console.error('Error syncing database:', err);
+    console.error('MongoDB Connection Error:', err);
   });
-

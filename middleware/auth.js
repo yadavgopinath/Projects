@@ -11,7 +11,7 @@ exports.authenticate = (req,res,next)=>{
         const   user = jwt.verify(token,process.env.JWT_SECRET);
        
       
-        User.findByPk(user.userId).then(user=>{
+        User.findById(user.userId).then(user=>{
             req.user = user;
             next();
         }).catch(err=>{throw new Error(err)})
@@ -23,3 +23,4 @@ exports.authenticate = (req,res,next)=>{
         })
     }
 }
+

@@ -22,7 +22,7 @@ if (!amount || !description || category === 'select') {
 const token = localStorage.getItem('token');
 if (expensesId) {
   
-  axios.put(`http://54.221.110.84:3000/expenses/update-expense/${expensesId}`, formdata,{headers:{'Authorization':token}})
+  axios.put(`http://localhost:3200/expenses/update-expense/${expensesId}`, formdata,{headers:{'Authorization':token}})
       .then(() => {
         loadexpense(expenseCurrentPage);
 document.getElementById('amount').value = '';
@@ -33,7 +33,7 @@ document.getElementById('expensesId').value = '';
       }).catch(err => console.log(err));
 } else{
 
-  axios.post("http://54.221.110.84:3000/expenses/addexpenses",formdata,{headers:{'Authorization':token}})
+  axios.post("http://localhost:3200/expenses/addexpenses",formdata,{headers:{'Authorization':token}})
     .then((response)=>{
      
       loadexpense(expenseCurrentPage);
@@ -69,16 +69,16 @@ if (!token) {
 
 // Pagination state variables with unique names
 let expenseCurrentPage = 1;
-const expenseItemsPerPageLimit = 10;
+const expenseItemsPerPageLimit = 2;
 
 function loadexpense(page = expenseCurrentPage) {
 checkToken();
 const userToken = localStorage.getItem('token');
 const decodeToken = parseJwt(userToken);
-const isPremium = decodeToken.isPremiumuser;
+const isPremium = decodeToken.isPremiumUser;
 updatePremiumStatus(isPremium);
 
-axios.get(`http://54.221.110.84:3000/expenses/getexpense?page=${page}&limit=${expenseItemsPerPageLimit}`, {
+axios.get(`http://localhost:3200/expenses/getexpense?page=${page}&limit=${expenseItemsPerPageLimit}`, {
 headers: { 'Authorization': userToken }
 })
 .then((response) => {
@@ -96,13 +96,14 @@ const expenseProductList = document.getElementById('productlist');
 expenseProductList.innerHTML = '';
 
 expenses.forEach(expense => {
+    console.log(expense._id);
 const expenseRow = document.createElement('tr');
 expenseRow.innerHTML = `
   <td>${expense.category} - ${expense.description}</td>
   <td>${expense.amount}</td>
   <td>
-    <button id="expenseEditButton" class="btn btn-sm btn-primary me-1" onclick="editExpense(${expense.id},${expense.amount},'${expense.description}','${expense.category}')">Edit</button>
-    <button class="btn btn-sm btn-danger" onclick="deleteExpense('${expense.id}')">Delete</button>
+    <button id="expenseEditButton" class="btn btn-sm btn-primary me-1" onclick="editExpense('${expense._id}',${expense.amount},'${expense.description}','${expense.category}')">Edit</button>
+    <button class="btn btn-sm btn-danger" onclick="deleteExpense('${expense._id}')">Delete</button>
   </td>
 `;
 expenseProductList.appendChild(expenseRow);
@@ -147,7 +148,7 @@ if (!id) {
 console.error('No ID provided for deletion.');
 return;
 }
-axios.delete(`http://54.221.110.84:3000/expenses/delete-expense/${id}`,{headers:{'Authorization':token}})
+axios.delete(`http://localhost:3200/expenses/delete-expense/${id}`,{headers:{'Authorization':token}})
 .then(() => {
   loadexpense(expenseCurrentPage); 
 })
@@ -161,7 +162,7 @@ function editExpense(id,amount,description,category) {
             document.getElementById('amount').value = amount;
         document.getElementById('desc').value = description;
         document.getElementById('category').value =category;
-        document.getElementById('expensesId').value =id;
+        document.getElementById('expensesId').value =String(id);
        const editForm= document.getElementById('mycontainer')
         
         editForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -172,7 +173,7 @@ function editExpense(id,amount,description,category) {
 //Razor-pay Integration
 document.getElementById('rz-pay').onclick = async function(e){
 const token =localStorage.getItem('token');
-const response = await axios.get('http://54.221.110.84:3000/purchase/premiummembership',{headers:{'Authorization':token}});
+const response = await axios.get('http://localhost:3200/purchase/premiummembership',{headers:{'Authorization':token}});
 //console.log(response);
 var options = {
 "key":response.data.key_id,
@@ -180,7 +181,7 @@ var options = {
 "handler": async function (response){
 //    console.log( options.order_id);  // Log the order ID
 //    console.log( response.razorpay_payment_id);  // Log the payment ID
-const updateResponseawait=await axios.post('http://54.221.110.84:3000/purchase/updatetransactionstatus',{
+const updateResponseawait=await axios.post('http://localhost:3200/purchase/updatetransactionstatus',{
     order_id:options.order_id,
     payment_id:response.razorpay_payment_id,
 
@@ -278,7 +279,7 @@ leadercurrentPage = 1; // Reset current page when showing leaderboard
 // Fetch leaderboard data from backend
 const token = localStorage.getItem('token');
 
-axios.get('http://54.221.110.84:3000/premium/showLeaderBoard', {
+axios.get('http://localhost:3200/premium/showLeaderBoard', {
     headers: { 'Authorization': token }
 })
 .then(response => {
@@ -341,7 +342,7 @@ document.getElementById('month-select').addEventListener('change', function () {
 
 function fetchAllExpenses() {
     const token = localStorage.getItem('token');
-    axios.get('http://54.221.110.84:3000/expenses/getexpense', { headers: { 'Authorization': token } })
+    axios.get('http://localhost:3200/expenses/getexpense', { headers: { 'Authorization': token } })
         .then(response => {
             if (response.data.success) {
                 allExpenses = response.data.expenses;
@@ -410,15 +411,16 @@ const spinner = document.getElementById('download-spinner');
 downloadButton.disabled = true;
 spinner.style.display = 'inline-block';
 
-axios.get("http://54.221.110.84:3000/expenses/download", { headers: { 'Authorization': token } })
+axios.get("http://localhost:3200/expenses/download", { headers: { 'Authorization': token }, 
+    responseType: 'blob' })
     .then((response) => {
-        if (response.status === 200) {
-            var a = document.createElement('a');
-            a.href = response.data.fileURL;
-            a.download = 'myexpense.csv';
-            a.click();
-           
-        }
+        const url = window.URL.createObjectURL(new Blob([response.data]));
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'all_expenses.csv';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
     })
     .catch((error) => {
         console.error('Error Downloading expenses:', error);
@@ -439,7 +441,7 @@ function fetchRecentDownloads() {
 const token = localStorage.getItem('token');
 const recentDownloadsContainer = document.getElementById('recent-downloads');
 
-axios.get("http://54.221.110.84:3000/expenses/previousdownloads", { headers: { 'Authorization': token } })
+axios.get("http://localhost:3200/expenses/previousdownloads", { headers: { 'Authorization': token } })
     .then(response => {
         recentDownloadsContainer.innerHTML = ''; 
 

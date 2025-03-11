@@ -11,7 +11,8 @@ try{
         return res.status(400).json({ error: 'Bad Parameter: Something is missing' });
       }
 
-      const existingUser = await Users.findOne({ where: { email: email } });
+      const existingUser = await Users.findOne( { email} );
+    
     if (existingUser) {
       return res.status(400).json({ message: 'Email already exists' });
     }
@@ -21,12 +22,14 @@ try{
 bcrypt.hash(password,saltrounds,async(err,hash)=>{
    
    
-    await Users.create({
-        name,
-        email:email.toLowerCase(),
-        password:hash,
-    
-     })
+   const newUser=new Users({
+    name,
+    email:email.toLowerCase(),
+    password:hash
+   });
+
+   await newUser.save();
+
      res.status(200).json({
         message:"user added successfully ",
         
@@ -34,23 +37,15 @@ bcrypt.hash(password,saltrounds,async(err,hash)=>{
 
 })
 }catch(err){
-  
-    if(err.name==='SequelizeUniqueConstraintError'){
-     return    res.status(400).json({
-            message:'Email Already Exist '
-        });
-    }
- res.status(500).json({
-    error:err
- });
-
+    console.error('Signup error:', error);
+    return res.status(500).json({ message: 'Server error' });
 }
 
 };
 
-exports.generateAccessToken = function(id,name,isPremiumuser){
+exports.generateAccessToken = function(user){
    
-    return jwt.sign({userId:id,name:name,isPremiumuser},'secretkey');
+    return jwt.sign({userId:user._id.toString(),name:user.name,isPremiumUser:user.isPremiumUser},'secretkey');
 }
 
 
@@ -61,9 +56,7 @@ exports.checkUser = async(req,res,next)=>{
 try{
 
 
-    const userPresent=await Users.findOne({
-        where:{email:email}
-    });
+    const userPresent=await Users.findOne({email});
 
     if(userPresent){
         bcrypt.compare(password,userPresent.password,(err,result)=>{
@@ -71,10 +64,11 @@ try{
             {
                 throw new Error('Something Went Wrong');
             }
-            if(result==true)
+            if(result===true)
             {
                 
-                const token = exports.generateAccessToken(userPresent.id, userPresent.name, userPresent.isprimiumuser);  // Using the same function
+                const token = exports.generateAccessToken(userPresent);  // Using the same function
+                
                 return res.status(200).json({ message: 'Login Successfully', token: token });
               }else{
                 return res.status(401).json({error:'Incorrect Password'});

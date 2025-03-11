@@ -28,7 +28,7 @@ document.getElementById('login-form').addEventListener('submit', async function(
       email: email,
       password: password
     };
-    await  axios.post('http://54.221.110.84:3000/user/login', data)
+    await  axios.post('http://localhost:3200/user/login', data)
       .then(function(response) {
         var email = document.getElementById('email').value = '';
         var password = document.getElementById('password').value = '';
